@@ -98,14 +98,17 @@ pip install -r requirements.txt
 python app.py
 ```
 5. **Activate Virtual Environment**
+```bash
   $ source .venv/bin/activate
-
+```
 6. **Start the Server**
+```bash
   $ python3 app.py
-
+```
  7. **Open Your Browser**
+ ```bash
   Go to: http://localhost:5000
-
+```
 ## Usage
 
 ### Web Interface Tabs
