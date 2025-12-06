@@ -6,7 +6,7 @@
 
 **Q: How do I install and run the crawler?**
 ```bash
-cd /Users/shreya/Desktop/Web_crawler
+cd your_project_directory
 source .venv/bin/activate
 python3 app.py
 # Open http://localhost:5000

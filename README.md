@@ -28,7 +28,33 @@ Web_crawler/
 ├── requirements.txt      # Python dependencies
 └── README.md            # This file
 ```
-
+### System Architecture Diagram
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                              WEB UI                                 │
+│                    http://localhost:5000                            │
+│                                                                     │
+│  [Crawl Tab]   [Search Tab]   [Browse Tab]                          │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼ AJAX
+┌─────────────────────────────────────────────────────────────────────┐
+│                     FLASK SERVER (app.py)                           │
+│ Routes:                                                             │
+│  POST /api/crawl     GET /api/search                                │
+│  GET  /api/pages     GET /api/stats                                 │
+│  POST /api/reset                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+      │                       │                          │
+      ▼                       ▼                          ▼
+┌──────────────┐    ┌──────────────────┐      ┌──────────────────────┐
+│ WebCrawler   │    │ TFIDFIndexer     │      │ Database (SQLite)    │
+│              │    │                  │      │                      │
+│ • BFS Crawl  │    │ • Tokenize       │      │ • pages table        │
+│ • Parse HTML │    │ • TF-IDF Scores  │      │ • words table        │
+│ • Extract URLs│   │ • Ranking        │      │ • word_page table    │
+└──────────────┘    └──────────────────┘      └──────────────────────┘
+```
 ## Installation & Setup
 
 ### Prerequisites
@@ -79,40 +105,42 @@ The app will start at `http://localhost:5000`
 - View all crawled pages
 - Clear data if needed
 
-### Python API
+## 📊 How It Works
 
-**Basic Crawling**
-```python
-from crawler.crawl import WebCrawler
-
-crawler = WebCrawler(
-    seed_url="http://quotes.toscrape.com",
-    max_pages=50,
-    delay=2.0
-)
-pages = crawler.crawl()
+### 1. Crawling Flow
 ```
-
-**Database Operations**
-```python
-from storage.database import Database
-
-db = Database("crawler.db")
-pages = db.get_all_pages()
-results = db.search_pages_by_word("python")
+URL Input
+    ↓
+Add to Frontier
+    ↓
+Fetch Page
+    ↓
+Parse HTML
+    ↓
+Extract Title, Text, Links
+    ↓
+Store in Database
+    ↓
+Add New Links to Frontier
+    ↓
+Repeat until max_pages or queue empty
 ```
-
-**TF-IDF Search**
-```python
-from indexer.indexer import TFIDFIndexer
-
-indexer = TFIDFIndexer()
-indexer.index_documents(documents)
-results = indexer.search("your query", top_k=10)
+### 2. Search Flow
 ```
-
-## How It Works
-
+Query Input
+    ↓
+Tokenize (lowercase, remove special chars)
+    ↓
+Remove Stopwords
+    ↓
+Look up each term in inverted index
+    ↓
+Calculate TF-IDF scores
+    ↓
+Rank by relevance
+    ↓
+Return top K results
+```
 ### 1. URL Frontier & Visited Set
 - Uses deque (FIFO queue) for breadth-first crawling
 - Maintains visited set to avoid duplicates
@@ -138,7 +166,7 @@ results = indexer.search("your query", top_k=10)
 - **TF (Term Frequency)**: How often term appears in document
 - **IDF (Inverse Document Frequency)**: How rare term is across all documents
 - **TF-IDF Score**: tf(t,d) × log(N/df(t))
-- Results ranked by relevance
+- Ranks search results by cumulative TF-IDF scores
 
 ## API Endpoints
 
@@ -150,8 +178,26 @@ results = indexer.search("your query", top_k=10)
 | GET | `/api/stats` | Get crawler statistics |
 | POST | `/api/reset` | Clear all data |
 
-## Configuration
+### Database Schema
+pages table
+├── id
+├── url
+├── title
+├── text
+└── crawled_at
 
+words table
+├── id
+├── word
+└── document_frequency
+
+word_page table
+├── word_id
+├── page_id
+└── term_frequency
+
+
+## Configuration
 **Crawler Parameters**
 ```python
 crawler = WebCrawler(
@@ -166,15 +212,6 @@ crawler = WebCrawler(
 db = Database(db_path="/custom/path.db")
 ```
 
-## Testing
-
-### Test with Demo Site
-1. Go to `http://localhost:5000`
-2. Enter: `quotes.toscrape.com`
-3. Set max pages: 30
-4. Click "Start Crawling"
-5. Try searches: "philosophy", "wisdom", "success"
-
 ## Performance
 
 - **Crawl Speed**: Limited by delay parameter (politeness)
@@ -182,13 +219,14 @@ db = Database(db_path="/custom/path.db")
 - **Search Speed**: O(1) word lookup in inverted index
 - **Database Size**: Depends on page count and content
 
-## Troubleshooting
+## Testing
+### Test with Demo Site
+1. Go to `http://localhost:5000`
+2. Enter: `quotes.toscrape.com`
+3. Set max pages: 30
+4. Click "Start Crawling"
+5. Try searches: "philosophy", "wisdom", "success"
 
-| Issue | Solution |
-|-------|----------|
-| Connection error | Check internet, verify domain accessible |
-| Database locked | Restart Flask app |
-| Out of memory | Reduce max_pages, crawl smaller sites |
 
 ## What You'll Learn
 
@@ -201,17 +239,4 @@ db = Database(db_path="/custom/path.db")
 ✓ URL normalization  
 ✓ HTTP headers and requests  
 
-## Future Improvements
 
-- [ ] Multi-threaded crawling
-- [ ] JavaScript rendering support
-- [ ] robots.txt parsing
-- [ ] Advanced query syntax (AND, OR, NOT)
-- [ ] Phrase search
-- [ ] PageRank algorithm
-- [ ] Duplicate detection
-- [ ] Incremental crawling
-
----
-
-**Happy crawling! 🚀**
