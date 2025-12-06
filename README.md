@@ -28,6 +28,21 @@ Web_crawler/
 ├── requirements.txt      # Python dependencies
 └── README.md            # This file
 ```
+## 📁 Project File Structure Overview
+
+### CORE APPLICATION
+- **app.py** — Flask web server  
+- **crawler/crawl.py** — Web crawling engine  
+- **indexer/indexer.py** — TF-IDF search engine  
+- **storage/database.py** — SQLite database manager  
+- **templates/index.html** — Web user interface  
+
+
+### CONFIGURATION
+- **requirements.txt** — Python dependencies  
+- **run.sh** — Quick start script  
+- **crawler.db** — Generated SQLite database (created at runtime)
+
 ### System Architecture Diagram
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -82,8 +97,14 @@ pip install -r requirements.txt
 ```bash
 python app.py
 ```
+5. Activate Virtual Environment
+  $ source .venv/bin/activate
 
-The app will start at `http://localhost:5000`
+6. Step 2: Start the Server
+  $ python3 app.py
+
+ 7. Open Your Browser
+  Go to: http://localhost:5000
 
 ## Usage
 
